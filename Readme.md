@@ -1,8 +1,5 @@
-Here’s a structured version of your README file with improved formatting and organization:
 
----
-
-# DAO Voting Application
+# DAO Voting Platform
 
 This project is a decentralized autonomous organization (DAO) voting platform built using **FastAPI**, **Web3.py**, and **LangChain**. It allows users to create proposals, vote on them, and interact with the DAO through a conversational AI assistant.
 
@@ -53,12 +50,20 @@ cd dao-voting-agent
 
 ### 2. Install Dependencies
 
-Make sure you have Python 3.6+ installed, then create a virtual environment and install the required packages:
+* Python 3.9+
+
+* Node.js and npm (optional, for testing contracts)
+
+* A custom blockchain endpoint
+
+* OpenAI API Key
+
+Make sure you have Python 3.10+ installed, then create a virtual environment and install the required packages:
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-pip install fastapi[all] web3 langchain
+pip install -r requirements.txt
 ```
 
 ### 3. Configure the Smart Contract
@@ -78,6 +83,10 @@ uvicorn main:app --reload
 ```
 
 ### 5. Access the API
+
+**ENDPOINTS**
+![Endpoints](image.png)
+
 
 Open your browser and navigate to:
 

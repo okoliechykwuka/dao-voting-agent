@@ -93,3 +93,4 @@ contract VotingDAO {
         proposal.executed = true;
     }
 }
+
