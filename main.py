@@ -4,7 +4,9 @@ from src.model import (BalanceResponse,
     ChatRequest,
     ChatResponse,   
     CreateProposalRequest,
+    ProposalRequest,
     ProposalResponse,
+    AddressRequest,
     TransactionResponse,
     VoteRequest,
     AnalyzeProposalRequest,
@@ -91,13 +93,13 @@ async def get_all_proposals():
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/proposals/{proposal_id}")
-async def get_proposal(proposal_id: int):
+@app.post("/proposals/detail", response_model=dict)
+async def get_proposal(request: ProposalRequest):
     try:
         # Fetch details for a specific proposal
-        title, description, vote_count, executed = contract.functions.getProposal(proposal_id).call()
+        title, description, vote_count, executed = contract.functions.getProposal(request.proposal_id).call()
         return {
-            "proposal_id": proposal_id,
+            "proposal_id": request.proposal_id,
             "title": title,
             "description": description,
             "vote_count": vote_count,
@@ -107,22 +109,21 @@ async def get_proposal(proposal_id: int):
         raise HTTPException(status_code=400, detail=str(e))
 
 # Added input validation for Ethereum addresses (Fix 7)
-@app.get("/balance/{address}", response_model=BalanceResponse)
-async def get_balance(address: str):
-    if not web3.isAddress(address):
+@app.post("/balance", response_model=BalanceResponse)
+async def get_balance(request: AddressRequest):
+    if not web3.isAddress(request.address):
         raise HTTPException(status_code=400, detail="Invalid Ethereum address")
 
     try:
-        balance = web3.eth.get_balance(address)
+        balance = web3.eth.get_balance(request.address)
         balance_ether = web3.from_wei(balance, 'ether')
         return {"balance": balance_ether}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/vote_history/{address}", response_model=VoteHistoryResponse)
-async def get_vote_history(address: str):
+@app.post("/vote_history", response_model=VoteHistoryResponse)
+async def get_vote_history(request: AddressRequest):
     try:
-        voted_proposals = contract.functions.getVoteHistory(address).call()
+        voted_proposals = contract.functions.getVoteHistory(request.address).call()
         return {"voted_proposals": voted_proposals}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

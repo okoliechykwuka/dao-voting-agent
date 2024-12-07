@@ -7,6 +7,12 @@ class CreateProposalRequest(BaseModel):
     description: str
     private_key: str
 
+class ProposalRequest(BaseModel):
+    proposal_id: int
+
+class AddressRequest(BaseModel):
+    address: str
+
 class VoteRequest(BaseModel):
     proposal_id: int
     private_key: str
