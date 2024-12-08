@@ -32,9 +32,6 @@ CHAIN_ID = 137
 # Initialize Web3 and contract
 web3, contract = initialize_web3()
 
-# Cached proposals
-cached_proposals = []
-
 def sign_and_send_transaction(tx, private_key):
     try:
         signed_tx = web3.eth.account.sign_transaction(tx, private_key=private_key)
@@ -43,6 +40,12 @@ def sign_and_send_transaction(tx, private_key):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Transaction failed: {str(e)}")
 
+@app.get("/", summary="Health Check")
+async def health_check():
+    """
+    Health check endpoint to confirm the app is running.
+    """
+    return {"status": "FastAPI app is running"}
 
 @app.get("/proposals", summary="Get All Proposals")
 async def get_all_proposals():
