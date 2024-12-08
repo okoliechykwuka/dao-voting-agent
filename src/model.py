@@ -37,8 +37,6 @@ class ProposalResponse(BaseModel):
     vote_count: int
     executed: bool
 
-class AllProposalsResponse(BaseModel):
-    proposals: List[ProposalResponse]
 
 # History requests and responses
 class VoteHistoryRequest(BaseModel):
@@ -56,16 +54,15 @@ class ProposalHistoryResponse(BaseModel):
     proposal_ids: List[int]
     
 ################  AGENT MODELS #######################
-class AnalyzeProposalRequest(BaseModel):
-    title: str
-    description: str
-
-class AnalyzeProposalResponse(BaseModel):
-    analysis: str
 
 class ChatRequest(BaseModel):
     message: str
-    user_address: str  # User's Ethereum address for context
+
+class ChatProposalByIdRequest(BaseModel):
+    user_address: str  # User's address (could be a wallet or unique identifier)
+    message: str  # The user's input message (what they are asking)
+    proposal_id: int  # The ID of the proposal they want to chat about
+    
 
 class ChatResponse(BaseModel):
     reply: str

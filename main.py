@@ -4,8 +4,6 @@ from web3 import Web3
 from web3.exceptions import ContractLogicError
 from src.model import (
     AddressRequest,
-    AnalyzeProposalRequest,
-    AnalyzeProposalResponse,
     BalanceResponse,
     ChatRequest,
     ChatResponse,
@@ -14,13 +12,15 @@ from src.model import (
     ProposalDetailRequest,
     ProposalHistoryRequest,
     ProposalHistoryResponse,
-    ProposalResponse,
+    # ProposalResponse,
     TransactionResponse,
     VoteRequest,
     VoteHistoryRequest,
     VoteHistoryResponse,
+    ChatProposalByIdRequest
 )
-from src.utils import initialize_web3
+from src.utils import initialize_web3, cache_get, cache_set,get_dao_assistant_response
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,6 +31,9 @@ CHAIN_ID = 137
 
 # Initialize Web3 and contract
 web3, contract = initialize_web3()
+
+# Cached proposals
+cached_proposals = []
 
 def sign_and_send_transaction(tx, private_key):
     try:
@@ -59,6 +62,8 @@ async def get_all_proposals():
                 "executed": p[3],
                 "creator": p[4]
             })
+        # Cache proposals in Redis
+        cache_set("dao_proposals", {"proposals": proposals})
         return {"proposals": proposals}
     except ContractLogicError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -113,7 +118,8 @@ async def get_proposal_detail(request: ProposalDetailRequest):
     """
     try:
         title, description, vote_count, executed, creator = contract.functions.getProposal(request.proposal_id).call()
-        return {
+        
+        proposal_details = {
             "proposal_id": request.proposal_id,
             "title": title,
             "description": description,
@@ -121,6 +127,10 @@ async def get_proposal_detail(request: ProposalDetailRequest):
             "executed": executed,
             "creator": creator
         }
+        cache_set("proposal_details", {
+            proposal_details["proposal_id"]: proposal_details
+        })
+        return proposal_details
     except ContractLogicError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
@@ -136,6 +146,8 @@ async def get_balance(request: AddressRequest):
         address = Web3.to_checksum_address(request.address)
         balance_wei = web3.eth.get_balance(address)
         balance_ether = web3.from_wei(balance_wei, 'ether')
+        # Cache balance in Redis
+        cache_set("user_balance", {"address": address, "balance": str(balance_ether)})
         return {"balance": str(balance_ether)}
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid Ethereum address")
@@ -200,36 +212,71 @@ async def delete_proposal(request: DeleteProposalRequest):
     except Exception:
         raise HTTPException(status_code=500, detail="Internal server error")
 
-
-@app.post("/analyze_proposal", response_model=AnalyzeProposalResponse, summary="Analyze Proposal")
-async def analyze_proposal(request: AnalyzeProposalRequest):
-    """
-    Analyze a proposal's title and description using a custom agent.
-    """
-    from src.agent import analyze_runnable
-    try:
-        analysis = await analyze_runnable.invoke({"title": request.title, "description": request.description})
-        return AnalyzeProposalResponse(analysis=analysis)
-    except Exception as e:
-        logger.error(f"Analysis failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
-
-
 @app.post("/chat", response_model=ChatResponse, summary="Chat")
 async def chat(request: ChatRequest):
+    
     """
     Chat endpoint that uses a custom agent to respond to user messages with DAO context.
     """
-    from src.agent import chat_runnable, cached_proposals, cached_vote_history
+
     try:
-        # Prepare DAO information from cache
-        dao_info = f"The DAO currently has {len(cached_proposals)} proposals."
+        # Retrieve DAO proposals from Redis cache
+        dao_data = cache_get("dao_proposals")
+        if not dao_data:
+            raise HTTPException(status_code=404, detail="Proposals not found in cache.")
+        
+        print(dao_data['proposals'])
 
-        # Fetch user's voting history from cache (if available)
-        vote_history = cached_vote_history.get(request.user_address, [])
+        dao_info = (
+            f"The DAO currently has {len(dao_data['proposals'])} proposals. \n"
+            f"All the Proposals Executed: {dao_data['proposals']}"
+        )
+        
+        chain = get_dao_assistant_response()
+        
+        response = chain.invoke({"dao_info": dao_info, "message": request.message})
 
-        reply = await chat_runnable.invoke({"message": request.message, "dao_info": dao_info, "vote_history": vote_history})
-        return ChatResponse(reply=reply)
+        return ChatResponse(reply=response.content)
     except Exception as e:
         logger.error(f"Chat failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+    
+
+# Chat endpoint for chatting with a proposal by ID
+@app.post("/chat/proposal_by_id", response_model=ChatResponse, summary="Chat with DAO Assistant about a Proposal")
+async def chat_with_proposal(request: ChatProposalByIdRequest):
+    """
+    Chat with the DAO assistant about a proposal by its ID. The assistant responds based on the proposal's details and the user's message.
+    """
+    from src.model import ProposalDetailRequest
+
+    try:
+        # Retrieve proposal details from the cache or external source
+        proposal_details = cache_get(f"proposal_details_{request.proposal_id}")
+
+        if not proposal_details:
+            # If details are not cached, fetch them from the contract or external source
+            proposal_request = ProposalDetailRequest(proposal_id=request.proposal_id)
+            # Example function to retrieve proposal details, you can modify this
+            proposal_details = await get_proposal_detail(proposal_request)
+
+        # Construct context string for the DAO assistant based on the proposal details
+        dao_info = (
+            f"Proposal ID: {request.proposal_id}\n"
+            f"Title: {proposal_details['title']}\n"
+            f"Description: {proposal_details['description']}\n"
+            f"Vote Count: {proposal_details['vote_count']}\n"
+            f"Executed: {proposal_details['executed']}\n"
+            f"Creator: {proposal_details['creator']}\n"
+        )
+        
+        chain = get_dao_assistant_response()
+        
+        # Generate a response using the proposal details and user's message        
+        response = chain.invoke({"dao_info": dao_info, "message": request.message})
+
+        # Return the response generated by the assistant
+        return ChatResponse(reply=response.content)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
