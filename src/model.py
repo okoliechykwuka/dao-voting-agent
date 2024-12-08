@@ -1,7 +1,7 @@
 from pydantic import BaseModel
+from typing import List
 
-
-# Models
+# Models for proposals and related actions
 class CreateProposalRequest(BaseModel):
     title: str
     description: str
@@ -9,6 +9,13 @@ class CreateProposalRequest(BaseModel):
 
 class ProposalRequest(BaseModel):
     proposal_id: int
+
+class ProposalDetailRequest(BaseModel):
+    proposal_id: int
+
+class DeleteProposalRequest(BaseModel):
+    proposal_id: int
+    private_key: str
 
 class AddressRequest(BaseModel):
     address: str
@@ -19,13 +26,10 @@ class VoteRequest(BaseModel):
 
 class TransactionResponse(BaseModel):
     transaction_hash: str
-    
-class BalanceResponse(BaseModel):
-    balance: float
 
-class VoteHistoryResponse(BaseModel):
-    voted_proposals: list
-    
+class BalanceResponse(BaseModel):
+    balance: str  # Using string to store balance as returned by fromWei conversion
+
 class ProposalResponse(BaseModel):
     proposal_id: int
     title: str
@@ -34,11 +38,24 @@ class ProposalResponse(BaseModel):
     executed: bool
 
 class AllProposalsResponse(BaseModel):
-    proposals: list[ProposalResponse]
-    
+    proposals: List[ProposalResponse]
+
+# History requests and responses
+class VoteHistoryRequest(BaseModel):
+    address: str
+
+class VoteHistoryResponse(BaseModel):
+    voter: str
+    voted_proposal_ids: List[int]
+
+class ProposalHistoryRequest(BaseModel):
+    address: str
+
+class ProposalHistoryResponse(BaseModel):
+    creator: str
+    proposal_ids: List[int]
     
 ################  AGENT MODELS #######################
-
 class AnalyzeProposalRequest(BaseModel):
     title: str
     description: str

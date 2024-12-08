@@ -1,10 +1,131 @@
-
 from web3 import Web3
 
 def initialize_web3():
-    WEB3_PROVIDER = "https://5165.rpc.thirdweb.com/7e03b521d3a4923ed34206b134e43261"
-    CONTRACT_ADDRESS = "0x29192C5d95BF89B8Db9e4390Bb175b811277b005"
-    CONTRACT_ABI = [{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"createProposal","inputs":[{"type":"string","name":"_title","internalType":"string"},{"type":"string","name":"_description","internalType":"string"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"deleteProposal","inputs":[{"type":"uint256","name":"_proposalId","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"executeProposal","inputs":[{"type":"uint256","name":"_proposalId","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"tuple[]","name":"","internalType":"struct VotingDAO.Proposal[]","components":[{"type":"string","name":"title","internalType":"string"},{"type":"string","name":"description","internalType":"string"},{"type":"uint256","name":"voteCount","internalType":"uint256"},{"type":"bool","name":"executed","internalType":"bool"}]}],"name":"getAllProposals","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"string","name":"title","internalType":"string"},{"type":"string","name":"description","internalType":"string"},{"type":"uint256","name":"voteCount","internalType":"uint256"},{"type":"bool","name":"executed","internalType":"bool"}],"name":"getProposal","inputs":[{"type":"uint256","name":"_proposalId","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"hasVoted","inputs":[{"type":"address","name":"","internalType":"address"},{"type":"uint256","name":"","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"proposalCount","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"string","name":"title","internalType":"string"},{"type":"string","name":"description","internalType":"string"},{"type":"uint256","name":"voteCount","internalType":"uint256"},{"type":"bool","name":"executed","internalType":"bool"}],"name":"proposals","inputs":[{"type":"uint256","name":"","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"vote","inputs":[{"type":"uint256","name":"_proposalId","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256[]","name":"","internalType":"uint256[]"}],"name":"getVoteHistory","inputs":[{"type":"address","name":"_voter","internalType":"address"}]}]
+    WEB3_PROVIDER = "https://137.rpc.thirdweb.com/7e03b521d3a4923ed34206b134e43261"
+    CHAIN_ID = 137
+    CONTRACT_ADDRESS = "0x8f1c24a3c8331E642De8dBFF976bf3903fF84d5c"
+    CONTRACT_ABI = [
+        {
+            "inputs": [
+                {"internalType": "string", "name": "_title", "type": "string"},
+                {"internalType": "string", "name": "_description", "type": "string"}
+            ],
+            "name": "createProposal",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "address", "name": "", "type": "address"},
+                {"internalType": "uint256", "name": "", "type": "uint256"}
+            ],
+            "name": "createdProposals",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [{"internalType": "uint256", "name": "_proposalId", "type": "uint256"}],
+            "name": "deleteProposal",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [{"internalType": "uint256", "name": "_proposalId", "type": "uint256"}],
+            "name": "executeProposal",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getAllProposals",
+            "outputs": [
+                {
+                    "components": [
+                        {"internalType": "string", "name": "title", "type": "string"},
+                        {"internalType": "string", "name": "description", "type": "string"},
+                        {"internalType": "uint256", "name": "voteCount", "type": "uint256"},
+                        {"internalType": "bool", "name": "executed", "type": "bool"},
+                        {"internalType": "address", "name": "creator", "type": "address"}
+                    ],
+                    "internalType": "struct VotingDAO.Proposal[]",
+                    "name": "",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [{"internalType": "uint256", "name": "_proposalId", "type": "uint256"}],
+            "name": "getProposal",
+            "outputs": [
+                {"internalType": "string", "name": "title", "type": "string"},
+                {"internalType": "string", "name": "description", "type": "string"},
+                {"internalType": "uint256", "name": "voteCount", "type": "uint256"},
+                {"internalType": "bool", "name": "executed", "type": "bool"},
+                {"internalType": "address", "name": "creator", "type": "address"}
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [{"internalType": "address", "name": "_creator", "type": "address"}],
+            "name": "getProposalHistory",
+            "outputs": [{"internalType": "uint256[]", "name": "", "type": "uint256[]"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [{"internalType": "address", "name": "_voter", "type": "address"}],
+            "name": "getVoteHistory",
+            "outputs": [{"internalType": "uint256[]", "name": "", "type": "uint256[]"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "address", "name": "", "type": "address"},
+                {"internalType": "uint256", "name": "", "type": "uint256"}
+            ],
+            "name": "hasVoted",
+            "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "proposalCount",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "uint256", "name": "", "type": "uint256"}
+            ],
+            "name": "proposals",
+            "outputs": [
+                {"internalType": "string", "name": "title", "type": "string"},
+                {"internalType": "string", "name": "description", "type": "string"},
+                {"internalType": "uint256", "name": "voteCount", "type": "uint256"},
+                {"internalType": "bool", "name": "executed", "type": "bool"},
+                {"internalType": "address", "name": "creator", "type": "address"}
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [{"internalType": "uint256", "name": "_proposalId", "type": "uint256"}],
+            "name": "vote",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ]
     
     web3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER))
     contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=CONTRACT_ABI)

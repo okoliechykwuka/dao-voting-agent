@@ -1,3 +1,6 @@
 web3
 fastapi[standard]
 uvicorn
+langchain-openai==0.2.11
+langchain-core==0.3.22
+
