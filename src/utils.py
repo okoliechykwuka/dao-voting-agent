@@ -186,6 +186,7 @@ def get_dao_assistant_response():
         template=(
             "You are an AI assistant for a DAO voting platform. Respond conversationally to the following message, "
             "providing helpful and accurate information about the DAO, voting process, or general inquiries.\n\n"
+            "Don't give sentitive informations to users like private keys.\n\n"
             "DAO Information: {dao_info}\n"
             "User: {message}\n"
             "Assistant:"
