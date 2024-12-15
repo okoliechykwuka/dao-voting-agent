@@ -2,7 +2,8 @@ from web3 import Web3
 import os
 import redis
 import json
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 
@@ -193,8 +194,8 @@ def get_dao_assistant_response():
         ),
     )
 
-    # Initialize the ChatOpenAI model with your API key
-    model = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    # Initialize the ChatAnthropic model with your API key
+    model = ChatAnthropic(model='claude-3-haiku-20240307', api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
     # Combine the chat prompt with the model
     chain = chat_prompt | model
